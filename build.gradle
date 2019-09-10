@@ -1,6 +1,10 @@
 buildscript {
     ext {
         springBootVersion = "2.0.6.RELEASE"
+        springVersion = "5.0.10.RELEASE"
+        hibernateVersion = "5.2.17.Final"
+        slf4jVersion = "1.7.25"
+        junitVersion = "4.12"
     }
 
     repositories {
@@ -12,30 +16,64 @@ buildscript {
     }
 }
 
-repositories {
-    mavenCentral()
-}
+task dependenciesGraphDot {
 
-apply plugin: "java"
-apply plugin: "war"
-apply plugin: "org.springframework.boot"
-apply plugin: "io.spring.dependency-management"
+    mustRunAfter "clean"
 
-group = "org.superbiz"
-version = "1.1.0-SNAPSHOT"
+    def graphBuildDir = "build/dependenciesGraph"
+    def dotFile = file "$graphBuildDir/graph.dot"
 
-description = "OpenEJB :: Web Examples :: Moviefun"
+    doLast {
+        delete graphBuildDir
+        mkdir graphBuildDir
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+        dotFile << "digraph dependencies {\n"
 
-test {
-    testLogging {
-        exceptionFormat = 'full'
+        project.subprojects.forEach { Project subProject ->
+            try {
+
+                Configuration compileConfig = subProject.configurations["compile"]
+
+                compileConfig
+                        .dependencies
+                        .grep { it.respondsTo("getDependencyProject") }
+                        .forEach { dotFile << """  "$subProject.name" -> "$it.dependencyProject.name"\n""" }
+            } catch (UnknownConfigurationException ignored) {
+            }
+        }
+        dotFile << "}\n"
     }
 }
 
-dependencies {
+task dependenciesGraph(dependsOn: "dependenciesGraphDot", type: Exec) {
+    workingDir "$project.buildDir/dependenciesGraph"
+    commandLine "dot", "-O", "-Tpng", "graph.dot"
+}
+
+task clean(type: Delete) {
+    delete "build"
+}
+/*
+repositories {
+    mavenCentral()
+}
+*/
+
+//apply plugin: "java"
+//apply plugin: "war"
+//apply plugin: "org.springframework.boot"
+//apply plugin: "io.spring.dependency-management"
+
+//group = "org.superbiz"
+//version = "1.1.0-SNAPSHOT"
+
+//description = "OpenEJB :: Web Examples :: Moviefun"
+
+//sourceCompatibility = 1.8
+//targetCompatibility = 1.8
+
+
+/*dependencies {
     compile "taglibs:standard:1.1.2"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-tomcat"
@@ -53,4 +91,4 @@ dependencies {
     compile "org.apache.geronimo.components:geronimo-jaspi:2.0.0"
 
     testCompile "junit:junit:4.12"
-}
+}*/
