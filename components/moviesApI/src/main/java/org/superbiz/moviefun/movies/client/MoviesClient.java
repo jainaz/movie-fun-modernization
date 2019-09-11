@@ -1,19 +1,21 @@
-package org.superbiz.moviefun.moviesapi;
+package org.superbiz.moviefun.movies.client;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.superbiz.moviefun.movies.api.MovieIntf;
+import org.superbiz.moviefun.movies.api.MoviesControllerIntf;
 
 import java.util.List;
 
 import static org.springframework.http.HttpMethod.GET;
 
-public class MoviesClient {
+public class MoviesClient implements MoviesControllerIntf {
 
     private String moviesUrl;
     private RestOperations restOperations;
 
-    private static ParameterizedTypeReference<List<MovieInfo>> movieListType = new ParameterizedTypeReference<List<MovieInfo>>() {
+    private static ParameterizedTypeReference<List<MovieIntf>> movieListType = new ParameterizedTypeReference<List<MovieIntf>>() {
     };
 
     public MoviesClient(String moviesUrl, RestOperations restOperations) {
@@ -21,9 +23,12 @@ public class MoviesClient {
         this.restOperations = restOperations;
     }
 
-    public void addMovie(MovieInfo movie) {
+    @Override
+    public void addMovie(MovieIntf movie) {
         restOperations.postForEntity(moviesUrl, movie, MovieInfo.class);
     }
+
+
 
     public void deleteMovieId(Long movieId) {
         restOperations.delete(moviesUrl + "/" + movieId);
@@ -43,7 +48,9 @@ public class MoviesClient {
     }
 
 
-    public List<MovieInfo> findAll(int start, int pageSize) {
+
+
+    public List<MovieIntf> findAll(int start, int pageSize) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(moviesUrl)
             .queryParam("start", start)
             .queryParam("pageSize", pageSize);
@@ -51,7 +58,8 @@ public class MoviesClient {
         return restOperations.exchange(builder.toUriString(), GET, null, movieListType).getBody();
     }
 
-    public List<MovieInfo> findRange(String field, String key, int start, int pageSize) {
+    @Override
+    public List<MovieIntf> find(String field, String key, Integer start, Integer pageSize) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(moviesUrl)
             .queryParam("field", field)
             .queryParam("key", key)
@@ -61,7 +69,7 @@ public class MoviesClient {
         return restOperations.exchange(builder.toUriString(), GET, null, movieListType).getBody();
     }
 
-    public List<MovieInfo> getMovies() {
+    public List<MovieIntf> getMovies() {
         return restOperations.exchange(moviesUrl, GET, null, movieListType).getBody();
     }
 }

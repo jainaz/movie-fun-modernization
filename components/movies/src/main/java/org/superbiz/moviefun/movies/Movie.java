@@ -16,6 +16,8 @@
  */
 package org.superbiz.moviefun.movies;
 
+import org.superbiz.moviefun.movies.api.MovieIntf;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -23,7 +25,7 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 @Entity
-public class Movie implements Serializable {
+public class Movie implements Serializable, MovieIntf {
 
     private static final long serialVersionUID = 1L;
 
@@ -54,6 +56,7 @@ public class Movie implements Serializable {
         this.year = year;
     }
 
+    @Override
     public long getId() {
         return id;
     }
@@ -62,6 +65,7 @@ public class Movie implements Serializable {
         this.id = id;
     }
 
+    @Override
     public String getDirector() {
         return director;
     }
@@ -70,6 +74,7 @@ public class Movie implements Serializable {
         this.director = director;
     }
 
+    @Override
     public String getTitle() {
         return title;
     }
@@ -78,6 +83,7 @@ public class Movie implements Serializable {
         this.title = title;
     }
 
+    @Override
     public int getYear() {
         return year;
     }
@@ -86,6 +92,7 @@ public class Movie implements Serializable {
         this.year = year;
     }
 
+    @Override
     public String getGenre() {
         return genre;
     }
@@ -94,6 +101,7 @@ public class Movie implements Serializable {
         this.genre = genre;
     }
 
+    @Override
     public int getRating() {
         return rating;
     }

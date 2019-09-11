@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import org.superbiz.moviefun.albumsapi.AlbumsClient;
-import org.superbiz.moviefun.moviesapi.MoviesClient;
+import org.superbiz.moviefun.movies.api.MoviesControllerIntf;
+import org.superbiz.moviefun.movies.client.MoviesClient;
+
 
 @Configuration
 public class ClientConfiguration {

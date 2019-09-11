@@ -1,4 +1,4 @@
-package org.superbiz.moviefun.moviesapi;
+package org.superbiz.moviefun.movies.client;
 
 import org.springframework.stereotype.Component;
 

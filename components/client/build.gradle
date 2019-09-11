@@ -1,7 +1,7 @@
 apply from: "../../java.gradle"
 
 dependencies {
-
+    compile project(":components:moviesApI")
 
     compile "org.springframework:spring-web:$springVersion"
     compile "org.springframework:spring-context:$springVersion"

@@ -1,6 +1,8 @@
-package org.superbiz.moviefun.moviesapi;
+package org.superbiz.moviefun.movies.client;
 
-public class MovieInfo {
+import org.superbiz.moviefun.movies.api.MovieIntf;
+
+public class MovieInfo implements MovieIntf {
     private Long id;
     private String title;
     private String director;
@@ -20,7 +22,7 @@ public class MovieInfo {
         this.year = year;
     }
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 

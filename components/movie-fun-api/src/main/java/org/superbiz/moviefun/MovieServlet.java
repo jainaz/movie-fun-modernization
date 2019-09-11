@@ -18,8 +18,10 @@ package org.superbiz.moviefun;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.superbiz.moviefun.moviesapi.MovieInfo;
-import org.superbiz.moviefun.moviesapi.MoviesClient;
+import org.superbiz.moviefun.movies.api.MovieIntf;
+import org.superbiz.moviefun.movies.client.MovieInfo;
+import org.superbiz.moviefun.movies.client.MoviesClient;
+
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -113,13 +115,14 @@ public class MovieServlet extends HttpServlet {
             }
 
             int start = (page - 1) * PAGE_SIZE;
-            List<MovieInfo> range;
+            List<MovieIntf> range;
 
-            if (StringUtils.isEmpty(key) || StringUtils.isEmpty(field)) {
+            /*if (StringUtils.isEmpty(key) || StringUtils.isEmpty(field)) {
                 range = moviesClient.findAll(start, PAGE_SIZE);
             } else {
                 range = moviesClient.findRange(field, key, start, PAGE_SIZE);
-            }
+            }*/
+            range = moviesClient.findAll(start, PAGE_SIZE);
 
             int end = start + range.size();
 

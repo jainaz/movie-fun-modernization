@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.superbiz.moviefun.movies.api.MovieIntf;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -41,19 +42,19 @@ public class MoviesRepository {
     }
 
     @Transactional
-    public void addMovie(Movie movie) {
+    public void addMovie(MovieIntf movie) {
         logger.debug("Creating movie with title {}, and year {}", movie.getTitle(), movie.getYear());
 
         entityManager.persist(movie);
     }
 
     @Transactional
-    public void updateMovie(Movie movie) {
+    public void updateMovie(MovieIntf movie) {
         entityManager.merge(movie);
     }
 
     @Transactional
-    public void deleteMovie(Movie movie) {
+    public void deleteMovie(MovieIntf movie) {
         entityManager.remove(movie);
     }
 
@@ -63,16 +64,16 @@ public class MoviesRepository {
         deleteMovie(movie);
     }
 
-    public List<Movie> getMovies() {
-        CriteriaQuery<Movie> cq = entityManager.getCriteriaBuilder().createQuery(Movie.class);
-        cq.select(cq.from(Movie.class));
+    public List<MovieIntf> getMovies() {
+        CriteriaQuery<MovieIntf> cq = entityManager.getCriteriaBuilder().createQuery(MovieIntf.class);
+        cq.select(cq.from(MovieIntf.class));
         return entityManager.createQuery(cq).getResultList();
     }
 
-    public List<Movie> findAll(int firstResult, int maxResults) {
-        CriteriaQuery<Movie> cq = entityManager.getCriteriaBuilder().createQuery(Movie.class);
-        cq.select(cq.from(Movie.class));
-        TypedQuery<Movie> q = entityManager.createQuery(cq);
+    public List<MovieIntf> findAll(int firstResult, int maxResults) {
+        CriteriaQuery<MovieIntf> cq = entityManager.getCriteriaBuilder().createQuery(MovieIntf.class);
+        cq.select(cq.from(MovieIntf.class));
+        TypedQuery<MovieIntf> q = entityManager.createQuery(cq);
         q.setMaxResults(maxResults);
         q.setFirstResult(firstResult);
         return q.getResultList();
@@ -89,8 +90,8 @@ public class MoviesRepository {
     public int count(String field, String searchTerm) {
         CriteriaBuilder qb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> cq = qb.createQuery(Long.class);
-        Root<Movie> root = cq.from(Movie.class);
-        EntityType<Movie> type = entityManager.getMetamodel().entity(Movie.class);
+        Root<MovieIntf> root = cq.from(MovieIntf.class);
+        EntityType<MovieIntf> type = entityManager.getMetamodel().entity(MovieIntf.class);
 
         Path<String> path = root.get(type.getDeclaredSingularAttribute(field, String.class));
         Predicate condition = qb.like(path, "%" + searchTerm + "%");
@@ -101,17 +102,17 @@ public class MoviesRepository {
         return entityManager.createQuery(cq).getSingleResult().intValue();
     }
 
-    public List<Movie> findRange(String field, String searchTerm, int firstResult, int maxResults) {
+    public List<MovieIntf> findRange(String field, String searchTerm, int firstResult, int maxResults) {
         CriteriaBuilder qb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Movie> cq = qb.createQuery(Movie.class);
-        Root<Movie> root = cq.from(Movie.class);
-        EntityType<Movie> type = entityManager.getMetamodel().entity(Movie.class);
+        CriteriaQuery<MovieIntf> cq = qb.createQuery(MovieIntf.class);
+        Root<MovieIntf> root = cq.from(MovieIntf.class);
+        EntityType<MovieIntf> type = entityManager.getMetamodel().entity(MovieIntf.class);
 
         Path<String> path = root.get(type.getDeclaredSingularAttribute(field, String.class));
         Predicate condition = qb.like(path, "%" + searchTerm + "%");
 
         cq.where(condition);
-        TypedQuery<Movie> q = entityManager.createQuery(cq);
+        TypedQuery<MovieIntf> q = entityManager.createQuery(cq);
         q.setMaxResults(maxResults);
         q.setFirstResult(firstResult);
         return q.getResultList();
