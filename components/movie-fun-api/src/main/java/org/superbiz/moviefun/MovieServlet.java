@@ -14,10 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.superbiz.moviefun.moviesapi;
+package org.superbiz.moviefun;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.superbiz.moviefun.moviesapi.MovieInfo;
+import org.superbiz.moviefun.moviesapi.MoviesClient;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
