@@ -1,0 +1,259 @@
+./gradlew applications:registration-server:bootRun
+./gradlew applications:allocations-server:bootRun
+./gradlew applications:backlog-server:bootRun
+./gradlew applications:timesheets-server:bootRun
+
+./gradlew platform-services:eureka-server:bootRun
+
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8081/allocations -d"{\"projectId\": 1, \"userId\": 1, \"firstDay\": \"2015-05-17\", \"lastDay\": \"2015-05-18\"}"
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8082/stories -d"{\"projectId\": 1, \"name\": \"Find some reeds\"}"
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8084/time-entries/ -d"{\"projectId\": 1, \"userId\": 1, \"date\": \"2015-05-17\", \"hours\": 6}"
+
+
+
+cd ~/workspace/assignment-submission
+
+
+./gradlew cloudNativeDeveloperDistributedSystemDeployment \
+    -PregistrationServerUrl=https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PbacklogServerUrl=https://backlog-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PallocationsServerUrl=https://allocations-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PtimesheetsServerUrl=https://timesheets-pal-ankur-anand.apps.evans.pal.pivotal.io/
+
+
+cf marketplace
+cf create-service p-circuit-breaker-dashboard  standard tracker-circuit-breaker-dashboard
+
+
+
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8083/registration -d'{"name": "Peter"}'
+
+curl -i localhost:8083/accounts?ownerId=3
+
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8083/projects -d"{\"name\": \"Project A\", \"accountId\": \"2\"}"
+curl -i -XPOST -H"Content-Type: application/json" localhost:8083/projects -d"{\"name\": \"Project B\", \"accountId\": \"2\"}"
+curl -i -XPOST -H"Content-Type: application/json" localhost:8083/projects -d"{\"name\": \"Project C\", \"accountId\": \"2\"}"
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8081/allocations/ -d"{\"projectId\": \"2\", \"userId\": \"3\", \"firstDay\": \"2015-05-17\", \"lastDay\": \"2015-05-18\"}"
+
+
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8081/allocations/ -d"{\"projectId\": \"4\", \"userId\": \"3\", \"firstDay\": \"2015-05-17\", \"lastDay\": \"2015-05-18\"}"
+
+curl -i -XPOST -H"Content-Type: application/json" localhost:8081/allocations/ -d"{\"projectId\": \"2\", \"userId\": \"3\", \"firstDay\": \"2015-05-17\", \"lastDay\": \"2015-05-18\"}"
+
+
+cd ~/workspace/assignment-submission
+./gradlew cloudNativeDeveloperDistributedSystemWithCircuitBreaker \
+    -PregistrationServerUrl=https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PbacklogServerUrl=https://backlog-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PallocationsServerUrl=https://allocations-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PtimesheetsServerUrl=https://timesheets-pal-ankur-anand.apps.evans.pal.pivotal.io/
+
+
+Starting assignment...
+
+GET https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/actuator/health
+GET https://backlog-pal-ankur-anand.apps.evans.pal.pivotal.io/actuator/health
+GET https://allocations-pal-ankur-anand.apps.evans.pal.pivotal.io/actuator/health
+GET https://timesheets-pal-ankur-anand.apps.evans.pal.pivotal.io/actuator/health
+POST https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/registration
+GET https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/accounts?ownerId=4
+POST https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/projects
+POST https://allocations-pal-ankur-anand.apps.evans.pal.pivotal.io/allocations
+POST https://backlog-pal-ankur-anand.apps.evans.pal.pivotal.io/stories
+POST https://timesheets-pal-ankur-anand.apps.evans.pal.pivotal.io/time-entries
+
+Assignment was successful.
+
+===============================================================================================================================
+							 SSO
+===============================================================================================================================
+cf create-service p-identity uaa tracker-sso
+
+curl 'http://localhost:8999/oauth/token' -i -u 'tracker-client:supersecret' -X POST -H 'Accept: application/json' -H 'Content-Type: application/x-www-form-urlencoded' -d 'grant_type=client_credentials&response_type=token&token_format=opaque'
+
+	HTTP/1.1 200 
+	Cache-Control: no-store
+	Pragma: no-cache
+	X-Content-Type-Options: nosniff
+	X-XSS-Protection: 1; mode=block
+	X-Frame-Options: DENY
+	Content-Type: application/json;charset=UTF-8
+	Transfer-Encoding: chunked
+	Date: Wed, 04 Sep 2019 04:31:02 GMT
+
+	{"access_token":"4bacaca4-6fd9-4491-bf1c-756072f39564","token_type":"bearer","expires_in":40792,"scope":"openid"}
+
+curl localhost:8083 -H"Authorization: Bearer 4bacaca4-6fd9-4491-bf1c-756072f39564"
+
+@EnableWebSecurity
+@EnableResourceServer
+security.oauth2.resource.token-info-uri=http://localhost:8999/oauth/check_token
+management.endpoints.web.exposure.include=env,health
+
+@EnableOAuth2Client
+security.oauth2.client.access-token-uri=http://localhost:8999/oauth/token
+security.oauth2.client.grant-type=client_credentials
+
+@Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.inMemory()
+            .withClient("tracker-client")
+            .secret("supersecret")
+            .authorizedGrantTypes("client_credentials")
+            .scopes("openid");
+    }
+
+
+bootRun.environment([
+    "APPLICATION_OAUTH_ENABLED": true,
+    "SECURITY_OAUTH2_CLIENT_CLIENT_ID": "tracker-client",
+    "SECURITY_OAUTH2_CLIENT_CLIENT_SECRET": "supersecret"
+])
+
+
+cd ~/workspace/assignment-submission
+./gradlew cloudNativeDeveloperDistributedSystemWithSecurity \
+    -PuaaUrl=https://login.sys.evans.pal.pivotal.io/ \
+    -PclientId=aa6bfe80-4859-4714-9c63-1bfb99b5d56c \
+    -PclientSecret=2d40edb6-4d4a-470c-bf37-7a39a466540a \
+    -PregistrationServerUrl=https://registration-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PbacklogServerUrl=https://backlog-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PallocationsServerUrl=https://allocations-pal-ankur-anand.apps.evans.pal.pivotal.io/ \
+    -PtimesheetsServerUrl=https://timesheets-pal-ankur-anand.apps.evans.pal.pivotal.io/
+    
+===============================================================================================================================
+							 Re platforming
+===============================================================================================================================
+
+https://www.google.com/search?q=efforts+on+replatfoming+java+application&client=ubuntu&hs=tkm&channel=fs&source=lnms&tbm=isch&sa=X&ved=0ahUKEwjFnMPlxrbkAhUOIKwKHdxxCdwQ_AUIEygC&biw=1213&bih=895#imgrc=IpG7ExEe-0xy0M:
+
+
+ git remote add origin https://github.com/jainaz/movie-fun
+
+git push origin master --tags
+
+
+
+rm -rf /home/rbs/dev/tomee/webapps/*
+rm -rf /home/rbs/dev/tomee/data/*
+
+cp target/moviefun.war /home/rbs/dev/tomee/webapps
+
+/home/rbs/dev/tomee/bin/catalina.sh run
+
+http://localhost:8080/moviefun
+
+cf push moviefun -p target/moviefun.war --random-route
+
+MOVIE_FUN_URL=http://moviefun-brash-echidna.apps.evans.pal.pivotal.io mvn test
+
+cf push moviefun -p target/moviefun.war -b https://github.com/cloudfoundry-community/tomee-buildpack/releases/download/v4.16.1/tomee-buildpack-v4.16.1.zip --random-route
+
+
+
+cf marketplace
+cf create-service p.mysql db-small movies-mysql
+
+cf bind-service moviefun movies-mysql
+cf restage moviefun
+
+
+cd ~/workspace/assignment-submission
+./gradlew replatformingBuildpacks -PmovieFunUrl=https://moviefun-brash-echidna.apps.evans.pal.pivotal.io
+
+
+curl https://spring-cloud-broker.apps.evans.pal.pivotal.io /actuator/info
+apps.evans.pal.pivotal.io  
+
+mvn spring-boot:run
+
+cf push moviefun -p target/moviefun.war -b java_buildpack_offline --random-route
+
+git push --set-upstream origin spring-bootification-work
+
+
+cd ~/workspace/assignment-submission
+./gradlew replatformingSpringBootification -PmovieFunUrl=https://${MOVIE_FUN_APP_URL}
+
+===================================================================================================
+
+https://github.com/cloudfoundry-samples/cf-s3-demo
+
+User provided service : cups
+
+
+cf delete moviefun
+
+moviefun-responsible-kob.apps.evans.pal.pivotal.io
+cf cups photo-storage -p '{"access_key_id":"AKIAVT7FZ27L2GW7CX7H","secret_access_key":"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","bucket":"ankur.jain3.rbs.com"}'
+
+cf restage moviefun
+
+
+cf bind-service moviefun photo-storage
+
+
+cd ~/workspace/assignment-submission
+./gradlew replatformingRemovingPersistenceToFileSystem -PmovieFunUrl=http://moviefun-relaxed-okapi.apps.evans.pal.pivotal.io
+
+
+
+logs5.papertrailapp.com:34320
+
+cf set-env moviefun JAVA_OPTS -Dlogging.level.org.springframework=DEBUG
+cf set-env moviefun JAVA_OPTS -Dlogging.level.org.superbiz.moviefun=DEBUG
+
+cf create-user-provided-service paper-trail -l syslog-tls://logs5.papertrailapp.com:34320
+cf bind-service moviefun paper-trail
+
+cd ~/workspace/assignment-submission
+./gradlew replatformingLogging -PmovieFunUrl=http://moviefun-relaxed-okapi.apps.evans.pal.pivotal.io
+
+
+cf install-plugin -r "CF-Community" mysql-plugin
+
+cf mysql albums-mysql < ./src/main/db/schema.ddl
+
+
+cf push moviefun -p target/moviefun.war --random-route
+
+cf scale moviefun -i 2
+
+cf logs moviefun
+
+cf create-service p.redis cache-small my-redis
+
+cf bind-service remove-session-state my-redis
+
+cd ~/workspace/assignment-submission
+./gradlew replatformingRemoveInstanceSpecificState -PsessionStateUrl=http://remove-session-state-accountable-bear.apps.evans.pal.pivotal.io
+
+
+
+
+
+cf push -f manifest.yml
+
+cd ~/workspace/assignment-submission
+./gradlew modernizationMicroservices -PmovieFunUrl=https://movie-fun-app-ankur-anant.apps.evans.pal.pivotal.io
+
+
+
+
+
+cf ssh -N -L 63305:q-n3s3y1.q-g27948.bosh:3306 album-service
+
+
+
+
+
+
+
+
